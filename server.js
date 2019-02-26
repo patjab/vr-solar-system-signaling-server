@@ -3,42 +3,51 @@ const wss = new WebSocketServer({ port: 9090 });
 console.log('Server is running');
 
 const roomRoaster = {
-    room1: [],
-    room2: [],
-    room3: [],
-    room4: []
+    room1: {
+        offer: {},
+        answers: []
+    },
+    room2: {
+        offer: {},
+        answers: []
+    },
+    room3: {
+        offer: {},
+        answers: []
+    },
+    room4: {
+        offer: {},
+        answers: []
+    }
 };
 
 wss.on('connection', (connection) => {
-    console.log('A user connected');
-
-    setTimeout(() => {
-        sendTo(connection, {
-            type: 'ASD',
-            payload: 'bcas'
-        });
-    }, 3000)
 
     connection.on('message', (message) => {
+        console.log('received message')
 
         let data;
         try {
             data = JSON.parse(message); 
         } catch (e) { 
-            console.log("Invalid JSON"); 
+            console.log('Invalid JSON error caught'); 
             data = {}; 
         } 
 
-        // switch(data.type) {
-        //     case 'login':
-        //     break;
-        //     case 'offer':
-        //     break;
-        //     case 'answer':
-        //     break;
-        //     case 'candidate':
-        //     break;
-        // };
+        console.log(data)
+
+        switch(data.type) {
+            case 'login':
+
+            break;
+            case 'offer':
+
+                break;
+            case 'answer':
+            break;
+            case 'candidate':
+            break;
+        };
 
     });
 
