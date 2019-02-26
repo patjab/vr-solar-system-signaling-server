@@ -6,7 +6,7 @@ const roomRoster = new Map([
     [
         'Room 1', 
         { 
-            offer: null,
+            offer: false,
             offerer: null,
             connections: []
         }
@@ -14,7 +14,7 @@ const roomRoster = new Map([
     [
         'Room 2', 
         { 
-            offer: null,
+            offer: false,
             offerer: null,
             connections: []
         }
@@ -22,7 +22,7 @@ const roomRoster = new Map([
     [
         'Room 3', 
         { 
-            offer: null,
+            offer: false,
             offerer: null,
             connections: []
         }
@@ -30,7 +30,7 @@ const roomRoster = new Map([
     [
         'Room 4', 
         { 
-            offer: null,
+            offer: false,
             offerer: null,
             connections: [] 
         }
@@ -46,8 +46,10 @@ wss.on('connection', (connection) => {
                 handleJoin(connection, data.data);
                 break;
             case 'offer':
+                handleOffer(connection, data.data);
                 break;
             case 'answer':
+                handleAnswer(connection, data.data);
                 break;
             case 'candidate':
                 break;
@@ -58,13 +60,44 @@ wss.on('connection', (connection) => {
 
 const handleJoin = (connection, data) => {
     const roomName = data.roomName;
-
     sendTo(connection, { 
-        type: 'SERVER/INITIAL', 
+        type: 'SERVER/GETOFFER', 
         payload: { 
-            expectedData: roomRoster.get(roomName).offer ? 'answer' : 'offer' 
+            offer: roomRoster.get(roomName).offer 
         }
     });
+}
+
+const handleOffer = (connection, data) => {
+    const roomName = data.roomName;
+    const offer = data.offer;
+    const newOfferDetails = { 
+        offer,
+        offerer: connection,
+        connections: [...roomRoster.get(roomName).connections, connection]
+    };
+    roomRoster.set(roomName, newOfferDetails);
+} 
+
+const handleAnswer = (connection, data) => {
+    const roomName = data.roomName;
+    const answer = data.answer;
+    const newOfferDetails = { 
+        offer: false,
+        offerer: null,
+        connections: [...roomRoster.get(roomName).connections, connection]
+    };
+    roomRoster.set(roomName, newOfferDetails);
+
+    // For more than two connections, change this
+    const sendAnswerTo = roomRoster.get(roomName).connections.find(conn => conn !== connection);
+    sendTo(sendAnswerTo, { 
+        type: 'SERVER/GETANSWER', 
+        payload: { 
+            answer
+        }
+    });
+    console.log('sending an answer back')
 }
 
 const sanitizeData = (message) => {
