@@ -52,6 +52,7 @@ wss.on('connection', (connection) => {
                 handleAnswer(connection, data.data);
                 break;
             case 'candidate':
+                handleCandidate(connection, data.data);
                 break;
         };
 
@@ -97,7 +98,26 @@ const handleAnswer = (connection, data) => {
             answer
         }
     });
-    console.log('sending an answer back')
+    console.log('sending an answer back');
+}
+
+const handleCandidate = (connection, data) => {
+    const candidate = data.candidate;
+    const roomName = data.roomName;
+
+    // For more than two connections, change this
+    const sendAnswerTo = roomRoster.get(roomName).connections.find(conn => conn !== connection);
+    
+    if ( sendAnswerTo ) {
+        sendTo(sendAnswerTo, { 
+            type: 'SERVER/GETCANDIDATE', 
+            payload: { 
+                candidate
+            }
+        });
+        console.log('sending a candidate to others');
+    }
+
 }
 
 const sanitizeData = (message) => {
