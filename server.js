@@ -2,56 +2,79 @@ const WebSocketServer = require('ws').Server;
 const wss = new WebSocketServer({ port: 9090 });
 console.log('Server is running');
 
-const roomRoaster = {
-    room1: {
-        offer: {},
-        answers: []
-    },
-    room2: {
-        offer: {},
-        answers: []
-    },
-    room3: {
-        offer: {},
-        answers: []
-    },
-    room4: {
-        offer: {},
-        answers: []
-    }
-};
+const roomRoster = new Map([
+    [
+        'Room 1', 
+        { 
+            offer: null,
+            offerer: null,
+            connections: []
+        }
+    ],
+    [
+        'Room 2', 
+        { 
+            offer: null,
+            offerer: null,
+            connections: []
+        }
+    ],
+    [
+        'Room 3', 
+        { 
+            offer: null,
+            offerer: null,
+            connections: []
+        }
+    ],
+    [
+        'Room 4', 
+        { 
+            offer: null,
+            offerer: null,
+            connections: [] 
+        }
+    ],
+]);
 
 wss.on('connection', (connection) => {
 
     connection.on('message', (message) => {
-        console.log('received message')
-
-        let data;
-        try {
-            data = JSON.parse(message); 
-        } catch (e) { 
-            console.log('Invalid JSON error caught'); 
-            data = {}; 
-        } 
-
-        console.log(data)
-
+        let data = sanitizeData(message);
         switch(data.type) {
-            case 'login':
-
-            break;
+            case 'join':
+                handleJoin(connection, data.data);
+                break;
             case 'offer':
-
                 break;
             case 'answer':
-            break;
+                break;
             case 'candidate':
-            break;
+                break;
         };
 
     });
-
 });
+
+const handleJoin = (connection, data) => {
+    const roomName = data.roomName;
+
+    sendTo(connection, { 
+        type: 'SERVER/INITIAL', 
+        payload: { 
+            expectedData: roomRoster.get(roomName).offer ? 'answer' : 'offer' 
+        }
+    });
+}
+
+const sanitizeData = (message) => {
+    try {
+        return JSON.parse(message); 
+    } catch (e) { 
+        console.log('Invalid JSON error caught'); 
+        return {}; 
+    } 
+}
 
 const sendTo = (connection, message) => {
     connection.send(JSON.stringify(message));
