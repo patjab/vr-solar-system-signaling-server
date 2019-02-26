@@ -10,6 +10,14 @@ const roomRoaster = {
 };
 
 wss.on('connection', (connection) => {
+    console.log('A user connected');
+
+    setTimeout(() => {
+        sendTo(connection, {
+            type: 'ASD',
+            payload: 'bcas'
+        });
+    }, 3000)
 
     connection.on('message', (message) => {
 
